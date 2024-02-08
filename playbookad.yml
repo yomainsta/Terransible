@@ -1,0 +1,26 @@
+- name: Deployer un nouveau AD Forest
+  hosts: winsrv
+  gather_facts: no
+  tasks:
+    - name: Ajouter AD-Domain-Services
+      win_shell: |
+        Add-WindowsFeature AD-Domain-Services
+      register: result_add_ad
+
+    - name: Afficher le resultat d ajout d'AD-Domain-Services
+      debug:
+        var: result_add_ad
+
+    - name: Installer ADDSForest terraform.lab
+      win_shell: |
+        $safeMdp = ConvertTo-SecureString "Admin1234567" -AsPlainText -Force
+        Install-ADDSForest -DomainName "terraform.lab" -SafeModeAdministratorPassword $safeMdp -CreateDnsDelegation:$false -DomainMode WinThreshold -Forestmode WinThreshold -InstallDns -NoRebootOnCompletion -Force
+      register: result_install_addsForest
+
+    - name: Afficher le resultat de l installation d'ADDSForest terraform.lab
+      debug:
+        var: result_install_addsForest
+
+    - name: Redemarrer la machine serveur a distance
+      win_shell: |
+        Restart-Computer -Force
